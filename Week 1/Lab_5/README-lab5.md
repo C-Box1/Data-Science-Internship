@@ -36,14 +36,10 @@ In-depth exploration of Python functions: positional and keyword arguments, defa
 
 ## Difficulties
 
-> *Fill in what you found hard or confusing during this lab.*
-
-* In this Lab there was a lot of stuff to learn all the way from learning how to define a function to learning how to deal with positional argument and keyword argument insertion in the parameters of a function and learning what a lambda function is
+* In this Lab what I found confusing is how python treats inserted arguments and how it shows them when you try to look into how it understands list unpacking or dict unpacking
 
 ---
 
 ## Feedback
 
-> *Your thoughts on this lab — what worked, what didn't, what surprised you.*
-
-* In this Lab there was a lot of stuff to learn all the way from learning how to define a function to learning how to deal with positional argument and keyword argument and the different ways arguments can be inserted in the parameters of a function and learning what a lambda function is
+* In this Lab there was a lot of stuff to learn all the way from learning how to define a function to learning how to deal with positional argument and keyword argument and the different ways arguments can be inserted in the parameters of a function and learning what a lambda function is, also understandng how local and global variables behaves and how python scans inncompile time and then runs line by line in runtime. And on top of that seeing some python attributes and how they work in python.
