@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Templates — Watch Consignment{% endblock %}
+{% block content %}
+<h1>Download Excel Templates</h1>
+<p class="lead">Use these official forms. Do not change the column headers.</p>
+
+<div class="template-list">
+  {% for t in templates %}
+  <div class="template-item card">
+    <h2>{{ t.label }}</h2>
+    <p class="filename">{{ t.file }}</p>
+    <a class="btn btn-primary" href="/download/{{ t.key }}">Download</a>
+  </div>
+  {% endfor %}
+</div>
+
+<section class="info-box">
+  <h3>How it works</h3>
+  <ol>
+    <li>Download the template you need.</li>
+    <li>Open it in Microsoft Excel and fill in your data.</li>
+    <li>Save the file on your computer.</li>
+    <li>Go to <a href="/upload">Upload Data</a> and send the file back.</li>
+  </ol>
+</section>
+{% endblock %}

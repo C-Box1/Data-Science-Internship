@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Reports — Watch Consignment{% endblock %}
+{% block head %}
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+{% endblock %}
+{% block content %}
+<h1>Sales Reports &amp; Visualizations</h1>
+<p class="lead">Choose filters, then click a report button. Only data already in the database appears in the filters.</p>
+
+<section class="card filters-panel">
+  <h2>Filters</h2>
+  <div class="form-grid">
+    <label>Shop
+      <select id="filter-shop"><option value="">All shops</option></select>
+    </label>
+    <label>City
+      <select id="filter-city"><option value="">All cities</option></select>
+    </label>
+    <label>Kind
+      <select id="filter-kind"><option value="">All kinds</option></select>
+    </label>
+    <label>Collection
+      <select id="filter-collection"><option value="">All collections</option></select>
+    </label>
+    <label>From month
+      <select id="filter-month-from"><option value="">Any</option></select>
+    </label>
+    <label>To month
+      <select id="filter-month-to"><option value="">Any</option></select>
+    </label>
+  </div>
+</section>
+
+<section class="card">
+  <h2>Choose a report</h2>
+  <div class="chart-buttons">
+    {% for c in chart_types %}
+    <button class="btn btn-chart" data-chart="{{ c.id }}">{{ c.label }}</button>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="card">
+  <div id="chart-area" class="chart-area">
+    <p class="muted">Select a report button above to see the chart.</p>
+  </div>
+  <div id="table-area"></div>
+</section>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/analytics.js') }}"></script>
+{% endblock %}

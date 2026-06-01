@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Add Products — Watch Consignment{% endblock %}
+{% block content %}
+<h1>Add Products</h1>
+<p class="lead">Enter up to {{ max_rows }} products at once. Required fields are marked with *.</p>
+
+<form id="manual-form" class="manual-form">
+  <div id="product-rows">
+    <div class="product-row card" data-row="0">
+      <h3>Product 1</h3>
+      <div class="form-grid">
+        <label>Reference *<input name="reference" required maxlength="20"></label>
+        <label>Collection *<input name="collection" required></label>
+        <label>Gender *
+          <select name="gender" required>
+            {% for g in genders %}<option value="{{ g }}">{{ g }}</option>{% endfor %}
+          </select>
+        </label>
+        <label>Movement *
+          <select name="movement" required>
+            {% for m in movements %}<option value="{{ m }}">{{ m }}</option>{% endfor %}
+          </select>
+        </label>
+        <label>Kind *
+          <select name="kind" required>
+            {% for k in kinds %}<option value="{{ k }}">{{ k }}</option>{% endfor %}
+          </select>
+        </label>
+        <label>Dial<input name="dial"></label>
+        <label>Bracelet<input name="bracelet" placeholder="e.g. MECH/LEATH"></label>
+        <label>Color<input name="color" placeholder="e.g. SS, PG"></label>
+        <label>Case Size<input name="case_size" placeholder="e.g. 30 or 21x28.4"></label>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <button type="button" class="btn btn-secondary" id="add-row-btn">Add another product</button>
+    <button type="submit" class="btn btn-primary">Save products</button>
+  </div>
+</form>
+
+<div id="manual-result" class="result-box hidden"></div>
+{% endblock %}
+{% block scripts %}
+<script>
+  const MAX_ROWS = {{ max_rows }};
+</script>
+<script src="{{ url_for('static', filename='js/add_product.js') }}"></script>
+{% endblock %}

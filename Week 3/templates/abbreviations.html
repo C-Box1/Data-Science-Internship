@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Abbreviations — Watch Consignment{% endblock %}
+{% block content %}
+<h1>Abbreviation Dictionary</h1>
+<p class="lead">
+  Short codes like <strong>BRCLT</strong> or <strong>PG</strong> are expanded automatically
+  (case-insensitive: brclt = BRCLT = BRACELET, pg = PG = PINK GOLD).
+</p>
+
+<section class="card">
+  <h2>Add a new abbreviation</h2>
+  <form id="add-abbrev-form" class="form-grid">
+    <label>Abbreviation<input name="abbreviation" required placeholder="e.g. BRACE"></label>
+    <label>Full term<input name="full_term" required placeholder="e.g. BRACELET"></label>
+    <label>Field
+      <select name="field_category">
+        <option value="bracelet">Bracelet</option>
+        <option value="color">Color</option>
+        <option value="movement">Movement</option>
+        <option value="dial">Dial</option>
+        <option value="collection">Collection</option>
+        <option value="general">General</option>
+      </select>
+    </label>
+    <button type="submit" class="btn btn-primary">Add</button>
+  </form>
+</section>
+
+<section class="card">
+  <h2>Current abbreviations</h2>
+  <div id="abbrev-table-wrap">
+    <p>Loading…</p>
+  </div>
+</section>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/abbreviations.js') }}"></script>
+{% endblock %}

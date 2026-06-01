@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Home — Watch Consignment{% endblock %}
+{% block content %}
+<section class="hero">
+  <h1>Welcome</h1>
+  <p class="lead">
+    Upload product catalogs and monthly sales reports, then view sales charts —
+    no technical knowledge required.
+  </p>
+</section>
+
+<section class="card-grid">
+  <a href="/templates" class="card">
+    <h2>1. Download Templates</h2>
+    <p>Get the official Excel forms. Fill them in on your computer.</p>
+  </a>
+  <a href="/upload" class="card">
+    <h2>2. Upload Files</h2>
+    <p>Send your completed Excel file back. We clean it and save to the database.</p>
+  </a>
+  <a href="/add-product" class="card">
+    <h2>3. Add Products</h2>
+    <p>Enter one product or up to 10 at a time using a simple form.</p>
+  </a>
+  <a href="/analytics" class="card">
+    <h2>4. View Reports</h2>
+    <p>See top sellers, sales by shop or city, and product breakdowns.</p>
+  </a>
+</section>
+
+<section class="status-panel" id="health-status">
+  <p>Checking database connection…</p>
+</section>
+{% endblock %}
+{% block scripts %}
+<script>
+  fetch('/api/health')
+    .then(r => r.json())
+    .then(d => {
+      const el = document.getElementById('health-status');
+      el.innerHTML = d.database
+        ? '<p class="success">Database connected and ready.</p>'
+        : '<p class="error">Database not connected. See README for setup steps.</p>';
+    });
+</script>
+{% endblock %}

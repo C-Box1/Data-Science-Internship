@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Upload Data — Watch Consignment{% endblock %}
+{% block content %}
+<h1>Upload Data</h1>
+<p class="lead">Choose the type of file you are uploading, then select your Excel file.</p>
+
+<div class="upload-grid">
+  <section class="card upload-card">
+    <h2>Product Catalog</h2>
+    <p>For new or updated watch and coffret references.</p>
+    <input type="file" id="product-file" accept=".xlsx,.xls">
+    <button class="btn btn-primary" id="upload-products-btn">Upload Products</button>
+    <div id="product-result" class="result-box hidden"></div>
+  </section>
+
+  <section class="card upload-card">
+    <h2>Monthly Sales &amp; Stock Report</h2>
+    <p>For POS sales and closing stock from your monthly report.</p>
+    <input type="file" id="report-file" accept=".xlsx,.xls">
+    <button class="btn btn-primary" id="upload-report-btn">Upload Report</button>
+    <div id="report-result" class="result-box hidden"></div>
+  </section>
+</div>
+
+<div id="abbrev-prompt" class="modal hidden">
+  <div class="modal-content">
+    <h3>Unknown abbreviation detected</h3>
+    <p id="abbrev-context"></p>
+    <label>Is this an abbreviation for an existing term?</label>
+    <select id="abbrev-existing"></select>
+    <label>Or enter a new full term</label>
+    <input type="text" id="abbrev-new-term" placeholder="e.g. BRACELET">
+    <div class="modal-actions">
+      <button class="btn btn-primary" id="abbrev-save">Save abbreviation</button>
+      <button class="btn btn-secondary" id="abbrev-ignore">Not an abbreviation</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/upload.js') }}"></script>
+{% endblock %}
