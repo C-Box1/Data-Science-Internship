@@ -10,15 +10,15 @@
 
 **Real Excel problems we found in the actual data files:**
 
-| Problem | Example from real data |
-|---------|------------------------|
+| Problem                    | Example from real data                        |
+| -------------------------- | --------------------------------------------- |
 | Trailing spaces in headers | `"COLLECTION "` instead of `"COLLECTION"` |
-| French spelling | `"MOUVEMENT"` instead of `"MOVEMENT"` |
-| Typos in headers | `"CASE SZE "` instead of `"CASE SIZE"` |
-| Zero as empty value | `0.0` in dial column meaning "no dial" |
-| Duplicate references | Same product in multiple source files |
-| Abbreviations | `BRCLT` instead of `BRACELET` |
-| Two report formats | January = shop columns; May = date columns |
+| French/UK spelling        | `"MOUVEMENT"` instead of `"MOVEMENT"`     |
+| Typos in headers           | `"CASE SZE "` instead of `"CASE SIZE"`    |
+| Zero as empty value        | `0.0` in dial column meaning "no dial"      |
+| Duplicate references       | Same product in multiple source files         |
+| Abbreviations              | `BRCLT` instead of `BRACELET`             |
+| Two report formats         | January = shop columns; May = date columns    |
 
 **If we skipped cleaning:** Database fills with garbage, charts break, employees lose trust in the tool.
 
@@ -26,12 +26,12 @@
 
 ## The four files and their jobs
 
-| File | Job | When it runs |
-|------|-----|--------------|
-| `abbreviation_resolver.py` | Expand BRCLT→BRACELET, pg→PINK GOLD | Every product row |
-| `product_cleaner.py` | Read product Excel files | Product catalog upload |
-| `monthly_report_parser.py` | Read sales/stock reports | Monthly report upload |
-| `pipeline.py` | Connect cleaning → database | Called by app.py |
+| File                         | Job                                   | When it runs           |
+| ---------------------------- | ------------------------------------- | ---------------------- |
+| `abbreviation_resolver.py` | Expand BRCLT→BRACELET, pg→PINK GOLD | Every product row      |
+| `product_cleaner.py`       | Read product Excel files              | Product catalog upload |
+| `monthly_report_parser.py` | Read sales/stock reports              | Monthly report upload  |
+| `pipeline.py`              | Connect cleaning → database          | Called by app.py       |
 
 **Why not one big cleaner file?** Each file handles a different Excel format. Easier to fix one without breaking the other.
 
@@ -42,6 +42,7 @@
 ## The problem it solves
 
 Employees and source Excel files use **short codes**:
+
 - `BRCLT` or `brclt` = bracelet type
 - `PG` or `pg` = pink gold
 - `MECH/LEATH` = mesh + leather strap combo
@@ -53,6 +54,7 @@ We store **full names** in the database for clarity. This file translates short 
 **Primary source:** PostgreSQL `abbreviations` table (employee can add new ones via website)
 
 **Fallback:** `DEFAULT_ALIASES` dictionary in this file — used when:
+
 - Running tests (no database needed)
 - Database connection fails
 
@@ -75,6 +77,7 @@ resolver = AbbreviationResolver(alias_maps=DEFAULT_ALIASES)  # hardcoded
 **Most important method.** Expands abbreviations in a cell value.
 
 **Algorithm in plain English:**
+
 1. If value is empty → return nothing
 2. Split on `/` (handles combos like `MECH/LEATH`)
 3. For each part, look it up in the dictionary (case-insensitive)
@@ -84,19 +87,19 @@ resolver = AbbreviationResolver(alias_maps=DEFAULT_ALIASES)  # hardcoded
 
 **Examples:**
 
-| Input | Category | Output | Unknown? |
-|-------|----------|--------|----------|
-| `"BRCLT"` | bracelet | `"BRACELET"` | No |
-| `"brclt"` | bracelet | `"BRACELET"` | No — case insensitive |
-| `"pg"` | color | `"PINK GOLD"` | No |
-| `"MECH/LEATH"` | bracelet | `"MESH/LEATHER STRAP"` | No — each part expanded |
-| `"TITANIUM"` | bracelet | `"TITANIUM"` | No — not a short code, kept as-is |
-| `"XYZ"` | color | `"XYZ"` | **Yes** — triggers employee popup |
+| Input            | Category | Output                   | Unknown?                                 |
+| ---------------- | -------- | ------------------------ | ---------------------------------------- |
+| `"BRCLT"`      | bracelet | `"BRACELET"`           | No                                       |
+| `"brclt"`      | bracelet | `"BRACELET"`           | No — case insensitive                   |
+| `"pg"`         | color    | `"PINK GOLD"`          | No                                       |
+| `"MECH/LEATH"` | bracelet | `"MESH/LEATHER STRAP"` | No — each part expanded                 |
+| `"TITANIUM"`   | bracelet | `"TITANIUM"`           | No — not a short code, kept as-is       |
+| `"XYZ"`        | color    | `"XYZ"`                | **Yes** — triggers employee popup |
 
-**Why mark unknown instead of failing?**  
+**Why mark unknown instead of failing?**
 Employee can define the code on the spot. Upload continues for other rows.
 
-**Why `len(part) <= 6 and part.isalpha()` for unknown detection?**  
+**Why `len(part) <= 6 and part.isalpha()` for unknown detection?**
 Short letter codes are probably abbreviations. `"TITANIUM"` is long — probably a real word, not an abbrev.
 
 ### Method: `reload()`
@@ -110,12 +113,13 @@ After employee adds new abbreviation via popup, call `reload()` to refresh the d
 ## What files it can read
 
 **From `/data` folder (development bootstrap):**
-| File | Sheet |
-|------|-------|
-| combined_file.xlsx | Sheet1 |
-| elio_list.xlsx | Feuil2 |
+
+| File                                         | Sheet  |
+| -------------------------------------------- | ------ |
+| combined_file.xlsx                           | Sheet1 |
+| elio_list.xlsx                               | Feuil2 |
 | list_for_elio_2.xlsx OR list for elio 2.xlsx | Sheet1 |
-| missing_info.xlsx | Sheet2 |
+| missing_info.xlsx                            | Sheet2 |
 
 **From website upload:** Any Excel file with the 9-column template format, sheet named `"Products"`.
 
@@ -129,20 +133,20 @@ Excel headers are inconsistent. This dictionary maps every variant to one clean 
 "casesze"    →  "case_size"
 ```
 
-**Why a dictionary instead of if-statements?**  
+**Why a dictionary instead of if-statements?**
 Easy to add new typos when we discover them — just add one line to the map.
 
 ## Class `ProductCleaner` — internal memory
 
 When processing files, the cleaner remembers:
 
-| Variable | Purpose |
-|----------|---------|
+| Variable             | Purpose                                                    |
+| -------------------- | ---------------------------------------------------------- |
 | `_seen_references` | Set of references already processed — prevents duplicates |
-| `_cleaning_log` | List of every dropped row + reason — for auditing |
-| `_unknown_abbrevs` | Codes needing employee input |
+| `_cleaning_log`    | List of every dropped row + reason — for auditing         |
+| `_unknown_abbrevs` | Codes needing employee input                               |
 
-**Why track across files in `load_all()`?**  
+**Why track across files in `load_all()`?**
 If `combined_file.xlsx` and `elio_list.xlsx` both contain `002H621`, second occurrence is dropped.
 
 ## Method: `_load_file(filepath, sheet_name)`
@@ -151,7 +155,7 @@ If `combined_file.xlsx` and `elio_list.xlsx` both contain `002H621`, second occu
 
 **Step 2:** `_normalize_columns()` — fix header names using COLUMN_MAP
 
-**Step 3:** `_drop_empty_columns()` — remove columns that are entirely empty  
+**Step 3:** `_drop_empty_columns()` — remove columns that are entirely empty
 **Why?** `elio_list.xlsx` has 17 extra empty columns that confuse processing.
 
 **Step 4:** Loop each row → `_process_row()`
@@ -172,20 +176,20 @@ Row has reference?
                               └── Success → add to results, track unknown abbrevs
 ```
 
-**Why drop bad rows instead of stopping entire upload?**  
+**Why drop bad rows instead of stopping entire upload?**
 One bad row should not block 499 good rows. Employee gets a summary at the end.
 
 ## Real scenario walkthrough
 
 **Employee uploads Excel with 5 rows:**
 
-| Row | Reference | Problem | Result |
-|-----|-----------|---------|--------|
-| 1 | 002H621 | None | ✅ Inserted |
-| 2 | 002H621 | Duplicate of row 1 | ❌ Dropped |
-| 3 | (empty) | No reference | ❌ Dropped |
-| 4 | 999X999 | gender="INVALID" | ❌ Dropped (validation error) |
-| 5 | 003L542 | bracelet=NEWCODE (unknown) | ✅ Inserted + popup for NEWCODE |
+| Row | Reference | Problem                    | Result                          |
+| --- | --------- | -------------------------- | ------------------------------- |
+| 1   | 002H621   | None                       | ✅ Inserted                     |
+| 2   | 002H621   | Duplicate of row 1         | ❌ Dropped                      |
+| 3   | (empty)   | No reference               | ❌ Dropped                      |
+| 4   | 999X999   | gender="INVALID"           | ❌ Dropped (validation error)   |
+| 5   | 003L542   | bracelet=NEWCODE (unknown) | ✅ Inserted + popup for NEWCODE |
 
 **Summary returned:** inserted=2, skipped=0, conflict=0, unknown_abbreviations=[NEWCODE]
 
@@ -205,6 +209,7 @@ Row 3:  003L542        | 1     | 0               | 0     | 3
 ```
 
 **How to read this:**
+
 - Row 0: shop names (one per shop block)
 - Row 1: under each shop, two columns — Sales then Cls Stock (closing stock)
 - Row 2+: one product per row, numbers under each shop
@@ -238,22 +243,23 @@ def _is_pos_wide_format(row0):
 **Given January report uploaded, products and shops already in DB:**
 
 1. **Extract shops from row 0:**
+
    - `"1113 - Kingdom Mall - Riyadh - AlHomaidhi"` → Shop object (id=1113)
    - Remember column index for each shop
-
 2. **Get report month from filename:**
-   - `"1-Pierre Lannier January 2024 Sales Per POS.xlsx"` → `2024-01-01`
 
+   - `"1-Pierre Lannier January 2024 Sales Per POS.xlsx"` → `2024-01-01`
 3. **For each data row (starting row 2):**
+
    - Column A = product reference
    - Under shop 1113: Sales column + Cls Stock column
    - Under shop 1122: Sales column + Cls Stock column
-
 4. **For each shop + product combination:**
+
    - Sales > 0 AND product in DB AND shop in DB → add to `sold` list
    - Stock >= 0 AND product in DB AND shop in DB → add to `present` list
 
-**Why require product AND shop in DB first?**  
+**Why require product AND shop in DB first?**
 Database has foreign keys — you cannot record a sale for a product that doesn't exist in the catalog.
 
 **Example row processing:**
@@ -270,12 +276,12 @@ present: (002H621, 1113) → add stock=1 ✅
 
 ## Helper methods explained
 
-| Method | What it does | Example |
-|--------|--------------|---------|
-| `_normalize_reference` | Accept product codes, reject headers | "002H621" ✅, "Item Code" ❌ |
-| `_month_from_filename` | Parse month from file name | "January 2024" → Jan 1 2024 |
-| `_parse_month_value` | Convert Excel date to date object | 2024-01-01 00:00:00 → date(2024,1,1) |
-| `_safe_int` | Convert cell to integer safely | "2" → 2, empty → None, "abc" → None |
+| Method                   | What it does                         | Example                                |
+| ------------------------ | ------------------------------------ | -------------------------------------- |
+| `_normalize_reference` | Accept product codes, reject headers | "002H621" ✅, "Item Code" ❌           |
+| `_month_from_filename` | Parse month from file name           | "January 2024" → Jan 1 2024           |
+| `_parse_month_value`   | Convert Excel date to date object    | 2024-01-01 00:00:00 → date(2024,1,1)  |
+| `_safe_int`            | Convert cell to integer safely       | "2" → 2, empty → None, "abc" → None |
 
 ---
 
@@ -341,8 +347,7 @@ Development helper — loads all 4 reference files from `/data` folder at once.
 
 Trace this upload through every cleaning file:
 
-**File:** product_catalog_template.xlsx, one row:  
-`350J621, MULTIPLES, LADIES, QUARTZ, SILVER, MECH/LEATH, SS/ROSE, 30, COFFRET`
+**File:** product_catalog_template.xlsx, one row:`350J621, MULTIPLES, LADIES, QUARTZ, SILVER, MECH/LEATH, SS/ROSE, 30, COFFRET`
 
 1. `product_cleaner._normalize_columns` — headers OK?
 2. `product_cleaner._process_row` — reference valid?

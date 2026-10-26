@@ -43,20 +43,20 @@ SAMPLE_CASE_SIZES = ["28", "30", "32", "34", "36", "38", "40", "42"]
 
 # Generic shop/mall names
 SAMPLE_SHOPS = [
-    ("1001", "Mall 1", "City 1", "Distributor A"),
-    ("1002", "Mall 2", "City 2", "Distributor B"),
-    ("1003", "Mall 3", "City 1", "Distributor A"),
-    ("1004", "Mall 4", "City 3", "Distributor C"),
-    ("1005", "Mall 5", "City 2", "Distributor B"),
-    ("1006", "Mall 6", "City 1", "Distributor A"),
-    ("0001", "Main Store", "City 1", "warehouse"),
+    ("1001", "Mall 1", "City 1", "retail", "Country A", "Distributor X"),
+    ("1002", "Mall 2", "City 2", "retail", "Country A", "Distributor Y"),
+    ("1003", "Mall 3", "City 1", "retail", "Country A", "Distributor X"),
+    ("1004", "Mall 4", "City 3", "retail", "Country A", "Distributor Z"),
+    ("1005", "Mall 5", "City 2", "retail", "Country A", "Distributor Y"),
+    ("1006", "Mall 6", "City 1", "retail", "Country A", "Distributor X"),
+    ("0001", "Main Store", "City 1", "warehouse", "Country A", "Distributor X"),
 ]
 
 # Base reference numbers
 REFERENCE_BASE_WATCH = 500000
 REFERENCE_BASE_COFFRET = 600000
 
-def generate_mock_products(count: int = 50) -> list:
+def generate_mock_products(count: int = 10) -> list:
     """
     Generate mock product objects.
     
@@ -135,22 +135,24 @@ def generate_mock_sales(conn, products: list, num_months: int = 6, sales_per_mon
     
     # Insert shops first
     shops_data = []
-    for shop_id, mall_name, city, shop_type in SAMPLE_SHOPS:
+    for shop_id, mall_name, city, shop_type, country, distributor in SAMPLE_SHOPS:
         shop = ShopModel(
             shop_id=shop_id,
             mall_name=mall_name,
             city=city,
             shop_type=shop_type,
+            country=country,
+            distributor=distributor,
         )
         repo.upsert_shop(conn, shop)
-        shops_data.append((shop_id, mall_name, city))
+        shops_data.append((shop_id, mall_name, city, shop_type, country, distributor))
     
     # Generate sales months (last 6 months)
     end_date = datetime.now()
     sales_months = []
     for i in range(num_months):
         month_date = end_date - timedelta(days=30 * i)
-        month_str = month_date.strftime("%Y-%m")
+        month_str = month_date.strftime("%Y-%m-%d")
         sales_months.append(month_str)
     
     sales_months.reverse()
@@ -159,7 +161,7 @@ def generate_mock_sales(conn, products: list, num_months: int = 6, sales_per_mon
     for month in sales_months:
         for _ in range(sales_per_month):
             product = random.choice(products)
-            shop_id, _, _ = random.choice(shops_data)
+            shop_id, _, _, _, _, _ = random.choice(shops_data)
             quantity = random.randint(1, 15)
             
             with conn.cursor() as cur:
@@ -172,7 +174,7 @@ def generate_mock_sales(conn, products: list, num_months: int = 6, sales_per_mon
                 )
             conn.commit()
 
-def populate_mock_data(conn=None, num_product_pairs: int = 25, sales_per_month: int = 200) -> dict:
+def populate_mock_data(conn=None, num_product_pairs: int = 10, sales_per_month: int = 200) -> dict:
     """
     Main function to populate mock data.
     
@@ -231,8 +233,8 @@ def populate_mock_data(conn=None, num_product_pairs: int = 25, sales_per_month: 
 if __name__ == "__main__":
     conn = get_connection()
     try:
-        # Generate 25 product pairs = 50 total products (25 watches + 25 coffrets)
-        result = populate_mock_data(conn, num_product_pairs=25, sales_per_month=200)
+        # Generate 30 product pairs = 60 total products (30 watches + 30 coffrets)
+        result = populate_mock_data(conn, num_product_pairs=5, sales_per_month=20)
         print(f"\n✓ {result['message']}" if result['success'] else f"\n✗ Error: {result['error']}")
     finally:
         conn.close()
